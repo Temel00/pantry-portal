@@ -1,36 +1,21 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+<div style="display: flex; justify-content: center; flex-flow: column nowrap; align-items: center;">
 
-## Getting Started
+# Pantry Portal 🥫
 
-First, run the development server:
+## by Tyler Emel
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Tech Stack
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+<div style="display: flex; justify-content: center;">
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+![Next Logo](./public/next-js.svg) &emsp; ![Typescript Logo](./public/typescript-icon.svg) &emsp; ![Tailwind Logo](./public/tailwind-css.svg) &emsp; ![Firebase Logo](./public/file-type-firebase.svg)
 
-## Learn More
+</div>
 
-To learn more about Next.js, take a look at the following resources:
+### Introduction
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+This is a web application that aims to help users track the inventory of their groceries. The goal of the Pantry Portal is to reduce food waste and let users create reports of what is in their pantries. Users can set thresholds on groceries to get notified if a pantry item is low stock.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+</div>
