@@ -34,23 +34,14 @@ const Auth = () => {
   };
 
   return (
-    <Box>
+    <Box className="flex flex-col items-center justify-center gap-1">
       {isLoggedIn && (
         <>
-          <Text style={{fontSize: ".5em"}}>
+          <Text className="text-xs text-main-white text-center">
             Hi, {(user as any).displayName}
           </Text>
           <Link
-            style={{
-              border: "1px solid var(--main-black)",
-              padding: ".25em .75em",
-              borderRadius: "999em",
-              textAlign: "center",
-              justifyContent: "center",
-              alignItems: "center",
-              cursor: "pointer",
-              fontSize: ".6em",
-            }}
+            className="text-lg text-main-white border rounded-full border-main-white border-solid py-1 px-4"
             onClick={() => auth.signOut()}
           >
             Logout
@@ -59,16 +50,7 @@ const Auth = () => {
       )}
       {!isLoggedIn && (
         <Button
-          style={{
-            color: "var(--dark-green)",
-            background: "none",
-            border: "1px solid var(--main-black)",
-            borderRadius: "999em",
-            padding: ".25em .75em",
-            fontFamily: "dico-sans-soft",
-            fontWeight: "400",
-            fontStyle: "normal",
-          }}
+          className="text-lg text-main-white border rounded-full border-main-white border-solid py-1 px-4"
           leftIcon={<FaGoogle />}
           onClick={() => handleAuth()}
         >
