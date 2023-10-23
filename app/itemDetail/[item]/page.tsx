@@ -9,6 +9,7 @@ import {
   where,
   addDoc,
   setDoc,
+  deleteDoc,
   getDoc,
   doc,
   updateDoc,
@@ -42,6 +43,8 @@ type Values = {
 export default function Page({params}: {params: {item: string}}) {
   const {isLoggedIn, user} = useAuth();
   const [items, setItems] = useState<Item>([]);
+  const [error, setError] = useState("");
+  const [dialog, setDialog] = useState(false);
   const [locations, setLocations] = useState([]);
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -161,25 +164,68 @@ export default function Page({params}: {params: {item: string}}) {
   };
 
   const getFormattedDate = (): string => {
+    console.log("itemUsed: " + itemUsed);
     const itemDate = new Date(+itemUsed);
+    console.log("itemDate: " + itemDate);
 
-    return itemDate.toISOString().slice(0, 10);
+    const year = itemDate.toISOString().slice(0, 4);
+    const month = itemDate.toISOString().slice(5, 7);
+    const day = itemDate.toISOString().slice(8, 10);
+    return month + "/" + day + "/" + year;
   };
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     if (user !== "" && user !== null) {
-      console.log("handle Submit clicked");
+      if (itemName !== "" && itemName !== null) {
+        setError("");
+        if (params.item == "add") {
+          const itemsRef = doc(collection(db, "items"));
+          const locInput = (
+            document.getElementById("locInput") as HTMLSelectElement | null
+          )?.value;
+          try {
+            await setDoc(itemsRef, {
+              name: itemName,
+              location: locInput,
+              total: itemTotal,
+              threshold: itemThreshold,
+              stock: itemStock,
+              lastUsed: Date.now(),
+              user: (user as any).uid,
+            });
+          } catch (err) {
+            console.log(err);
+          } finally {
+            router.push("/");
+          }
+        } else {
+          try {
+            await setDoc(doc(db, "items", params.item), {
+              name: itemName,
+              location: itemLocation,
+              total: itemTotal,
+              threshold: itemThreshold,
+              stock: itemStock,
+              lastUsed: Date.now(),
+              user: (user as any).uid,
+            });
+          } catch (err) {
+            console.log(err);
+          } finally {
+            router.push("/");
+          }
+        }
+      } else {
+        setError("Error: Please enter an item name.");
+      }
+    }
+  };
+
+  const handleDelete = async () => {
+    if (user !== "" && user !== null) {
       try {
-        await setDoc(doc(db, "items", params.item), {
-          name: itemName,
-          location: itemLocation,
-          total: itemTotal,
-          threshold: itemThreshold,
-          stock: itemStock,
-          lastUsed: itemUsed,
-          user: (user as any).uid,
-        });
+        await deleteDoc(doc(db, "items", params.item));
       } catch (err) {
         console.log(err);
       } finally {
@@ -188,72 +234,170 @@ export default function Page({params}: {params: {item: string}}) {
     }
   };
 
-  if (params.item == "add") {
-  }
-
   return (
     <main className="flex min-h-screen flex-col items-center">
       <Header page={2} />
-      <form
-        className="flex flex-col items-center mt-4 gap-2"
-        onSubmit={handleSubmit}
-      >
-        <input
-          name="name"
-          value={itemName}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-            setItemName(e.target.value);
-          }}
-        ></input>
-        <select
-          name="location"
-          value={itemLocation}
-          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-            setItemLocation(e.target.value);
-          }}
-        >
-          {locations.map((loc) => {
-            return (
-              <option key={loc} value={loc}>
-                {loc}
-              </option>
-            );
-          })}
-        </select>
-        <input
-          name="total"
-          type="number"
-          value={itemTotal}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-            setItemTotal(+e.target.value);
-          }}
-        ></input>
-        <input
-          name="threshold"
-          type="number"
-          value={itemThreshold}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-            setItemThreshold(+e.target.value);
-          }}
-        ></input>
-        <input
-          name="stock"
-          type="number"
-          value={itemStock}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-            setItemStock(+e.target.value);
-          }}
-        ></input>
-        <input
-          name="lastUsed"
-          type="date"
-          value={getFormattedDate()}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-            setItemUsed(e.target.value);
-          }}
-        ></input>
-        <button type="submit">Save</button>
-      </form>
+      {isLoggedIn && user != null && user != "" ? (
+        <>
+          {dialog && (
+            <div className="fixed w-full h-full bg-shadow-white-trans pt-24 text-main-black flex justify-center">
+              <div className="flex flex-col bg-main-pink h-min text-center p-4 rounded-xl">
+                <h2 className="text-lg">Delete Item</h2>
+                <p className="text-sm">
+                  Are you sure you want to delete this pantry item?
+                </p>
+                <div className="flex justify-around mt-4">
+                  <button
+                    className="border border-shadow-white-trans py-1 px-4 rounded-full"
+                    onClick={() => setDialog(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="border border-shadow-white-trans py-1 px-4 rounded-full"
+                    onClick={handleDelete}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <form
+            className="flex flex-col items-center mt-4 gap-2 bg-main-black p-4 rounded-xl text-main-white"
+            onSubmit={handleSubmit}
+          >
+            <input
+              name="name"
+              value={itemName}
+              className="bg-transparent border-shadow-white border rounded-md px-1 text-xl w-full mb-2 text-center"
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                setItemName(e.target.value);
+              }}
+            ></input>
+
+            <div className="flex gap-1 justify-between w-full">
+              <label htmlFor="location">Location:</label>
+              <select
+                name="location"
+                value={itemLocation}
+                id="locInput"
+                className="bg-transparent border border-shadow-white rounded-md px-1"
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                  setItemLocation(e.target.value);
+                }}
+              >
+                {locations.map((loc) => {
+                  return (
+                    <option
+                      key={loc}
+                      value={loc}
+                      className="bg-main-black border px-1"
+                    >
+                      {loc}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+
+            <div className="flex flex-col text-center w-full border-y border-shadow-white py-4 my-2">
+              <label htmlFor="stock">Stock: {itemStock}</label>
+              {+itemStock <= +itemThreshold ? (
+                <input
+                  name="stock"
+                  type="range"
+                  value={itemStock}
+                  min={0}
+                  max={itemTotal}
+                  className="bg-transparent border border-shadow-white rounded-md px-1 text-center accent-main-pink"
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    setItemStock(+e.target.value);
+                  }}
+                ></input>
+              ) : (
+                <input
+                  name="stock"
+                  type="range"
+                  value={itemStock}
+                  min={0}
+                  max={itemTotal}
+                  className="bg-transparent border border-shadow-white rounded-md px-1 text-center accent-main-green"
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    setItemStock(+e.target.value);
+                  }}
+                ></input>
+              )}
+              <div className="flex justify-between mt-2">
+                <div className="flex flex-col place-items-center">
+                  <input
+                    name="threshold"
+                    type="number"
+                    min={0}
+                    max={itemTotal}
+                    value={itemThreshold}
+                    className="bg-transparent border border-shadow-white rounded-md px-1 w-10 text-center"
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      setItemThreshold(+e.target.value);
+                    }}
+                  ></input>
+                  <label htmlFor="threshold" className="text-xs">
+                    Threshold
+                  </label>
+                </div>
+                <div className="flex flex-col place-items-center">
+                  <input
+                    name="total"
+                    type="number"
+                    min={0}
+                    value={itemTotal}
+                    className="bg-transparent border border-shadow-white rounded-md px-1 w-10 text-center"
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      setItemTotal(+e.target.value);
+                    }}
+                  ></input>
+                  <label htmlFor="total" className="text-xs">
+                    Total
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <p>Last updated: {getFormattedDate()}</p>
+            <button
+              type="submit"
+              className="text-lg bg-main-green py-2 px-4 rounded-full"
+            >
+              Save
+            </button>
+            <p className="text-md text-main-pink">{error}</p>
+          </form>
+          {params.item !== "add" && (
+            <button
+              className="flex text-xs bg-main-pink mt-12 py-2 px-4 rounded-full"
+              onClick={() => {
+                setDialog(true);
+              }}
+            >
+              Delete&emsp;
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="16"
+                viewBox="0 -960 960 960"
+                width="16"
+                fill="currentColor"
+              >
+                <path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z" />
+              </svg>
+            </button>
+          )}
+        </>
+      ) : (
+        <div>
+          <h2>Please log in to view pantry</h2>
+        </div>
+      )}
     </main>
   );
 }
