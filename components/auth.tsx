@@ -34,14 +34,14 @@ const Auth = () => {
   };
 
   return (
-    <Box className="flex flex-col items-center justify-center gap-1">
+    <Box className="flex flex-col items-center justify-center gap-1 h-16">
       {isLoggedIn && (
         <>
           <Text className="text-xs text-main-white text-center">
             Hi, {(user as any).displayName}
           </Text>
           <Link
-            className="text-lg text-main-white border rounded-full border-main-white border-solid py-1 px-4"
+            className="text-md text-main-white rounded-full bg-shadow-white px-4"
             onClick={() => auth.signOut()}
           >
             Logout
@@ -50,7 +50,7 @@ const Auth = () => {
       )}
       {!isLoggedIn && (
         <Button
-          className="text-lg text-main-white border rounded-full border-main-white border-solid py-1 px-4"
+          className="text-md text-main-white rounded-full bg-shadow-white px-4"
           leftIcon={<FaGoogle />}
           onClick={() => handleAuth()}
         >

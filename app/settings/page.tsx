@@ -160,12 +160,14 @@ export default function Settings() {
               );
             })}
           </div>
-          <button
-            className="flex rounded-full justify-center items-center text-3xl fixed bottom-8 right-8 pointer p-6 w-12 h-12 bg-main-pink text-main-black shadow-xl border border-shadow-white-trans"
-            onClick={() => setDialog(true)}
-          >
-            +
-          </button>
+          <div className="flex items-center justify-center rounded-b-full bg-dark-pink w-14">
+            <button
+              className="flex rounded-full justify-center items-center text-3xl p-7 w-12 h-12 bg-main-pink text-main-black shadow-xl border-4 border-dark-pink mt-8"
+              onClick={() => setDialog(true)}
+            >
+              +
+            </button>
+          </div>
         </>
       ) : (
         <div>

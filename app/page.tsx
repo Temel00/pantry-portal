@@ -91,7 +91,7 @@ export default function Home() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center">
+    <main className="flex min-h-screen flex-col items-center pb-4">
       <Header page={1} />
       {isLoggedIn && user != null && user != "" ? (
         <>
@@ -140,7 +140,7 @@ export default function Home() {
                           >
                             <div className="w-full border-t py-1 border-shadow-white">
                               <p className="lg:text-xl">{name}</p>
-                              <div className="bg-main-white w-full rounded-full">
+                              <div className="bg-main-white w-full rounded-full border-4 border-main-white">
                                 {stock <= threshold ? (
                                   <div
                                     className="bg-main-pink h-3 rounded-full lg:h-5"
@@ -163,13 +163,14 @@ export default function Home() {
               );
             })}
           </div>
-
-          <Link
-            href="/itemDetail/add"
-            className="flex rounded-full justify-center items-center text-3xl fixed bottom-8 right-8 pointer p-6 w-12 h-12 bg-main-pink text-main-black shadow-xl border border-shadow-white-trans"
-          >
-            +
-          </Link>
+          <div className="bg-dark-pink px-7 py-10 bottom-0 right-7 fixed rounded-t-full">
+            <Link
+              href="/itemDetail/add"
+              className="flex rounded-full justify-center items-center text-3xl fixed bottom-8 right-6 pointer p-7 w-12 h-12 bg-main-pink text-main-black shadow-lg border-dark-pink border-4"
+            >
+              +
+            </Link>
+          </div>
         </>
       ) : (
         <div>
