@@ -16,6 +16,7 @@ import {
 } from "firebase/firestore";
 import {db} from "../firebase";
 import Link from "next/link";
+import {AnimatePresence, easeInOut, motion} from "framer-motion";
 
 type Item = {
   name: string;
@@ -24,6 +25,7 @@ type Item = {
   threshold: number;
   stock: number;
   lastUsed: Date;
+  units: string;
   user: string;
   id: string;
 }[];
@@ -55,6 +57,7 @@ export default function Home() {
             threshold: doc.data().threshold,
             stock: doc.data().stock,
             lastUsed: doc.data().lastUsed,
+            units: doc.data().units,
             user: doc.data().user,
             id: doc.id,
           });
@@ -114,6 +117,7 @@ export default function Home() {
                       threshold,
                       stock,
                       lastUsed,
+                      units,
                       user,
                       id,
                     } = item;
@@ -135,22 +139,38 @@ export default function Home() {
                               "&s=" +
                               stock +
                               "&u=" +
-                              lastUsed
+                              lastUsed +
+                              "&un=" +
+                              units
                             }
                           >
                             <div className="w-full border-t py-1 border-shadow-white">
                               <p className="lg:text-xl">{name}</p>
                               <div className="bg-main-white w-full rounded-full border-4 border-main-white">
                                 {stock <= threshold ? (
-                                  <div
-                                    className="bg-main-pink h-3 rounded-full lg:h-5"
-                                    style={{width: (stock / total) * 100 + "%"}}
-                                  ></div>
+                                  <motion.div
+                                    className="bg-main-pink h-3 rounded-full lg:h-5 origin-left"
+                                    style={{
+                                      width: (stock / total) * 100 + "%",
+                                    }}
+                                    initial={{scaleX: 0}}
+                                    animate={{scaleX: 1}}
+                                    transition={{
+                                      duration: stock / total,
+                                      type: "spring",
+                                    }}
+                                  ></motion.div>
                                 ) : (
-                                  <div
-                                    className="bg-main-green h-3 rounded-full lg:h-5"
+                                  <motion.div
+                                    className="bg-main-green h-3 rounded-full lg:h-5 origin-left"
                                     style={{width: (stock / total) * 100 + "%"}}
-                                  ></div>
+                                    initial={{scaleX: 0}}
+                                    animate={{scaleX: 1}}
+                                    transition={{
+                                      duration: (stock / total) * 2,
+                                      type: "spring",
+                                    }}
+                                  ></motion.div>
                                 )}
                               </div>
                             </div>
@@ -163,14 +183,23 @@ export default function Home() {
               );
             })}
           </div>
-          <div className="bg-dark-pink px-7 py-10 bottom-0 right-7 fixed rounded-t-full">
+
+          <motion.div
+            className="fixed bg-dark-pink px-7 py-10 bottom-0 right-7 rounded-t-full"
+            initial={{transform: "translateY(50px)"}}
+            animate={{transform: "translateY(0)"}}
+            transition={{
+              duration: 0.1,
+              type: "spring",
+            }}
+          >
             <Link
               href="/itemDetail/add"
-              className="flex rounded-full justify-center items-center text-3xl fixed bottom-8 right-6 pointer p-7 w-12 h-12 bg-main-pink text-main-black shadow-lg border-dark-pink border-4"
+              className="absolute top-0 -left-1 flex rounded-full justify-center items-center text-3xl pointer p-7 w-12 h-12 bg-main-pink text-main-black shadow-lg border-dark-pink border-4"
             >
               +
             </Link>
-          </div>
+          </motion.div>
         </>
       ) : (
         <div>
