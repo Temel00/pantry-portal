@@ -16,6 +16,7 @@ import {
 } from "firebase/firestore";
 import {db} from "../../firebase";
 import Link from "next/link";
+import {motion} from "framer-motion";
 
 export default function Settings() {
   const {isLoggedIn, user} = useAuth();
@@ -101,7 +102,11 @@ export default function Settings() {
       {isLoggedIn && user != null && user != "" ? (
         <>
           {dialog && (
-            <div className="fixed w-full h-full bg-shadow-white-trans pt-24 text-main-black flex justify-center">
+            <motion.div
+              className="fixed w-full h-full bg-shadow-white-trans pt-24 text-main-black flex justify-center"
+              initial={{translateY: window.innerHeight}}
+              animate={{translateY: 0}}
+            >
               <div className="flex flex-col bg-main-pink h-min text-center p-4 rounded-xl">
                 <h2 className="text-lg">Add Location</h2>
                 <div className="flex gap-1 items-center">
@@ -128,7 +133,7 @@ export default function Settings() {
                   </button>
                 </div>
               </div>
-            </div>
+            </motion.div>
           )}
 
           <h1 className="text-3xl text-main-black mt-4">Settings</h1>

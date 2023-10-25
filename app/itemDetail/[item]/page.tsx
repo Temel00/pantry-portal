@@ -19,6 +19,7 @@ import {
 } from "firebase/firestore";
 import {db} from "../../../firebase";
 import Link from "next/link";
+import {AnimatePresence, easeInOut, motion} from "framer-motion";
 
 type Item = {
   name: string;
@@ -27,17 +28,9 @@ type Item = {
   threshold: number;
   stock: number;
   lastUsed: Date;
+  units: string;
   user: string;
   id: string;
-}[];
-
-type Values = {
-  name: string;
-  location: string;
-  total: number;
-  threshold: number;
-  stock: number;
-  lastUsed: string;
 }[];
 
 export default function Page({params}: {params: {item: string}}) {
@@ -45,6 +38,8 @@ export default function Page({params}: {params: {item: string}}) {
   const [items, setItems] = useState<Item>([]);
   const [error, setError] = useState("");
   const [dialog, setDialog] = useState(false);
+  const [edit, setEdit] = useState(false);
+  const [save, setSave] = useState(false);
   const [locations, setLocations] = useState([]);
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -75,6 +70,11 @@ export default function Page({params}: {params: {item: string}}) {
     return used !== null ? used : "";
   });
 
+  const [itemUnits, setItemUnits] = useState<string>(() => {
+    const units = searchParams.get("un");
+    return units !== null ? units : "";
+  });
+
   useEffect(() => {
     setStateVariables();
     refreshSpace();
@@ -82,6 +82,9 @@ export default function Page({params}: {params: {item: string}}) {
   }, [user]);
 
   const setStateVariables = () => {
+    if (params.item == "add") {
+      setEdit(true);
+    }
     // Set States
     const name = searchParams.get("n");
     if (name !== null) {
@@ -118,7 +121,6 @@ export default function Page({params}: {params: {item: string}}) {
     const itemId = params.item;
     if (itemId != null) {
       let ar: Item = [];
-      // let newAr: Values = [];
 
       const itemRef = doc(db, "items", itemId);
       try {
@@ -131,6 +133,7 @@ export default function Page({params}: {params: {item: string}}) {
             threshold: docSnap.data()?.threshold,
             stock: docSnap.data()?.stock,
             lastUsed: docSnap.data()?.lastUsed,
+            units: docSnap.data()?.units,
             user: docSnap.data()?.user,
             id: docSnap.data()?.id,
           });
@@ -192,6 +195,7 @@ export default function Page({params}: {params: {item: string}}) {
               threshold: itemThreshold,
               stock: itemStock,
               lastUsed: Date.now(),
+              units: itemUnits,
               user: (user as any).uid,
             });
           } catch (err) {
@@ -208,12 +212,14 @@ export default function Page({params}: {params: {item: string}}) {
               threshold: itemThreshold,
               stock: itemStock,
               lastUsed: Date.now(),
+              units: itemUnits,
               user: (user as any).uid,
             });
           } catch (err) {
             console.log(err);
           } finally {
-            router.push("/");
+            // router.push("/");
+            setEdit(false);
           }
         }
       } else {
@@ -265,45 +271,119 @@ export default function Page({params}: {params: {item: string}}) {
           )}
 
           <form
-            className="flex flex-col items-center mt-4 gap-2 bg-main-black p-4 rounded-xl text-main-white"
+            className="flex flex-col items-center mt-4 gap-2 bg-main-black py-4 px-6 rounded-xl text-main-white shadow-lg relative"
             onSubmit={handleSubmit}
           >
-            <input
-              name="name"
-              value={itemName}
-              className="bg-transparent border-shadow-white border rounded-md px-1 text-xl w-full mb-2 text-center"
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                setItemName(e.target.value);
-              }}
-            ></input>
+            <div className="relative">
+              {edit ? (
+                <input
+                  name="name"
+                  value={itemName}
+                  className="bg-transparent border-shadow-white border rounded-md px-1 text-xl w-full mb-2 text-center"
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    setItemName(e.target.value);
+                  }}
+                ></input>
+              ) : (
+                <>
+                  <motion.button
+                    className="absolute -right-16 shadow-lg bg-shadow-white p-2 rounded-r-xl"
+                    onClick={() => {
+                      setEdit(true);
+                      setSave(false);
+                    }}
+                    initial={{translateX: -10}}
+                    animate={{translateX: 0}}
+                    transition={{
+                      duration: 0.2,
+                      ease: easeInOut,
+                      scale: {
+                        type: "spring",
+                        damping: 5,
+                        stiffness: 90,
+                      },
+                    }}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      height="24"
+                      viewBox="0 -960 960 960"
+                      width="24"
+                      fill="currentColor"
+                    >
+                      <path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z" />
+                    </svg>
+                  </motion.button>
+                  <h2 className="text-2xl">{itemName}</h2>
+                </>
+              )}
+            </div>
 
             <div className="flex gap-1 justify-between w-full">
-              <label htmlFor="location">Location:</label>
-              <select
-                name="location"
-                value={itemLocation}
-                id="locInput"
-                className="bg-transparent border border-shadow-white rounded-md px-1"
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-                  setItemLocation(e.target.value);
-                }}
-              >
-                {locations.map((loc) => {
-                  return (
-                    <option
-                      key={loc}
-                      value={loc}
-                      className="bg-main-black border px-1"
-                    >
-                      {loc}
-                    </option>
-                  );
-                })}
-              </select>
+              {edit ? (
+                <>
+                  <label htmlFor="location">Location:</label>
+                  <select
+                    name="location"
+                    value={itemLocation}
+                    id="locInput"
+                    className="bg-transparent border border-shadow-white rounded-md px-1"
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                      setItemLocation(e.target.value);
+                    }}
+                  >
+                    {locations.map((loc) => {
+                      return (
+                        <option
+                          key={loc}
+                          value={loc}
+                          className="bg-main-black border px-1"
+                        >
+                          {loc}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm">Location: </p>
+                  <p className="text-sm">{itemLocation}</p>
+                </>
+              )}
             </div>
 
             <div className="flex flex-col text-center w-full border-y border-shadow-white py-4 my-2">
-              <label htmlFor="stock">Stock: {itemStock}</label>
+              {edit ? (
+                <div className="flex justify-center gap-2">
+                  <label htmlFor="stock">Stock: {itemStock}</label>
+                  <select
+                    className="bg-transparent border border-shadow-white rounded-md"
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                      setItemUnits(e.target.value);
+                    }}
+                  >
+                    <option value="tsp">tsp</option>
+                    <option value="tbsp">tbsp</option>
+                    <option value="c">c</option>
+                    <option value="pt">pt</option>
+                    <option value="qt">qt</option>
+                    <option value="gal">gal</option>
+                    <option value="oz">oz</option>
+                    <option value="fl oz">fl oz</option>
+                    <option value="lb">lb</option>
+                    <option value="mL">mL</option>
+                    <option value="l">l</option>
+                    <option value="g">g</option>
+                    <option value="kg">kg</option>
+                  </select>
+                </div>
+              ) : (
+                <p>
+                  Stock:&emsp;{itemStock}&ensp;{itemUnits}
+                </p>
+              )}
+
               {+itemStock <= +itemThreshold ? (
                 <input
                   name="stock"
@@ -313,7 +393,12 @@ export default function Page({params}: {params: {item: string}}) {
                   max={itemTotal}
                   className="bg-transparent border border-shadow-white rounded-md px-1 text-center accent-main-pink"
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    setItemStock(+e.target.value);
+                    if (itemStock !== +e.target.value) {
+                      setItemStock(+e.target.value);
+                      setSave(true);
+                    } else {
+                      setSave(false);
+                    }
                   }}
                 ></input>
               ) : (
@@ -325,55 +410,99 @@ export default function Page({params}: {params: {item: string}}) {
                   max={itemTotal}
                   className="bg-transparent border border-shadow-white rounded-md px-1 text-center accent-main-green"
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    setItemStock(+e.target.value);
+                    if (itemStock !== +e.target.value) {
+                      setItemStock(+e.target.value);
+                      setSave(true);
+                    }
                   }}
                 ></input>
               )}
-              <div className="flex justify-between mt-2">
-                <div className="flex flex-col place-items-center">
-                  <input
-                    name="threshold"
-                    type="number"
-                    min={0}
-                    max={itemTotal}
-                    value={itemThreshold}
-                    className="bg-transparent border border-shadow-white rounded-md px-1 w-10 text-center"
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                      setItemThreshold(+e.target.value);
-                    }}
-                  ></input>
-                  <label htmlFor="threshold" className="text-xs">
-                    Threshold
-                  </label>
+
+              {edit && (
+                <div className="flex justify-between mt-2">
+                  <div className="flex flex-col place-items-center">
+                    <input
+                      name="threshold"
+                      type="number"
+                      min={0}
+                      max={itemTotal}
+                      value={itemThreshold}
+                      className="bg-transparent border border-shadow-white rounded-md px-1 w-10 text-center"
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        setItemThreshold(+e.target.value);
+                      }}
+                    ></input>
+                    <label htmlFor="threshold" className="text-xs">
+                      Threshold
+                    </label>
+                  </div>
+                  <div className="flex flex-col place-items-center">
+                    <input
+                      name="total"
+                      type="number"
+                      min={0}
+                      value={itemTotal}
+                      className="bg-transparent border border-shadow-white rounded-md px-1 w-10 text-center"
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        setItemTotal(+e.target.value);
+                      }}
+                    ></input>
+                    <label htmlFor="total" className="text-xs">
+                      Total
+                    </label>
+                  </div>
                 </div>
-                <div className="flex flex-col place-items-center">
-                  <input
-                    name="total"
-                    type="number"
-                    min={0}
-                    value={itemTotal}
-                    className="bg-transparent border border-shadow-white rounded-md px-1 w-10 text-center"
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                      setItemTotal(+e.target.value);
-                    }}
-                  ></input>
-                  <label htmlFor="total" className="text-xs">
-                    Total
-                  </label>
-                </div>
-              </div>
+              )}
             </div>
 
             <p>Last updated: {getFormattedDate()}</p>
-            <button
-              type="submit"
-              className="text-lg bg-main-green py-2 px-4 rounded-full"
-            >
-              Save
-            </button>
-            <p className="text-md text-main-pink">{error}</p>
+            {edit && (
+              <>
+                <button
+                  type="submit"
+                  className="text-lg bg-main-green py-2 px-4 rounded-full"
+                >
+                  Save
+                </button>
+                <p className="text-md text-main-pink">{error}</p>
+              </>
+            )}
+            {save && (
+              <div className="absolute -bottom-24 -z-10">
+                <motion.div
+                  className="absolute bg-dark-pink w-16 h-24 bottom-8 -z-10"
+                  initial={{translateY: -100}}
+                  animate={{translateY: 0}}
+                  transition={{
+                    duration: 0.4,
+                    ease: easeInOut,
+                    scale: {
+                      type: "spring",
+                      damping: 15,
+                      stiffness: 100,
+                    },
+                  }}
+                ></motion.div>
+                <motion.button
+                  className="bg-main-pink text-main-black w-16 h-16 rounded-full border-4 border-dark-pink"
+                  initial={{translateY: -100}}
+                  animate={{translateY: 0}}
+                  transition={{
+                    duration: 0.4,
+                    ease: easeInOut,
+                    scale: {
+                      type: "spring",
+                      damping: 15,
+                      stiffness: 100,
+                    },
+                  }}
+                >
+                  Save
+                </motion.button>
+              </div>
+            )}
           </form>
-          {params.item !== "add" && (
+          {params.item !== "add" && edit && (
             <button
               className="flex text-xs bg-main-pink mt-12 py-2 px-4 rounded-full"
               onClick={() => {
