@@ -84,6 +84,7 @@ export default function Page({params}: {params: {item: string}}) {
   const setStateVariables = () => {
     if (params.item == "add") {
       setEdit(true);
+      setSave(false);
     }
     // Set States
     const name = searchParams.get("n");
@@ -188,6 +189,7 @@ export default function Page({params}: {params: {item: string}}) {
             document.getElementById("locInput") as HTMLSelectElement | null
           )?.value;
           try {
+            router.push("/");
             await setDoc(itemsRef, {
               name: itemName,
               location: locInput,
@@ -200,8 +202,6 @@ export default function Page({params}: {params: {item: string}}) {
             });
           } catch (err) {
             console.log(err);
-          } finally {
-            router.push("/");
           }
         } else {
           try {
@@ -228,6 +228,17 @@ export default function Page({params}: {params: {item: string}}) {
     }
   };
 
+  const updateStock = async () => {
+    try {
+      setSave(false);
+      await updateDoc(doc(db, "items", params.item), {
+        stock: itemStock,
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   const handleDelete = async () => {
     if (user !== "" && user !== null) {
       try {
@@ -246,7 +257,7 @@ export default function Page({params}: {params: {item: string}}) {
       {isLoggedIn && user != null && user != "" ? (
         <>
           {dialog && (
-            <div className="fixed w-full h-full bg-shadow-white-trans pt-24 text-main-black flex justify-center">
+            <div className="fixed w-full h-full bg-shadow-white-trans pt-24 text-main-black flex justify-center z-10">
               <div className="flex flex-col bg-main-pink h-min text-center p-4 rounded-xl">
                 <h2 className="text-lg">Delete Item</h2>
                 <p className="text-sm">
@@ -287,6 +298,7 @@ export default function Page({params}: {params: {item: string}}) {
               ) : (
                 <>
                   <motion.button
+                    key={"editBtn"}
                     className="absolute -right-16 shadow-lg bg-shadow-white p-2 rounded-r-xl"
                     onClick={() => {
                       setEdit(true);
@@ -303,6 +315,7 @@ export default function Page({params}: {params: {item: string}}) {
                         stiffness: 90,
                       },
                     }}
+                    exit={{translateX: -10}}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -467,40 +480,36 @@ export default function Page({params}: {params: {item: string}}) {
                 <p className="text-md text-main-pink">{error}</p>
               </>
             )}
-            {save && (
-              <div className="absolute -bottom-24 -z-10">
-                <motion.div
-                  className="absolute bg-dark-pink w-16 h-24 bottom-8 -z-10"
-                  initial={{translateY: -100}}
-                  animate={{translateY: 0}}
-                  transition={{
-                    duration: 0.4,
-                    ease: easeInOut,
-                    scale: {
-                      type: "spring",
-                      damping: 15,
-                      stiffness: 100,
-                    },
-                  }}
-                ></motion.div>
-                <motion.button
-                  className="bg-main-pink text-main-black w-16 h-16 rounded-full border-4 border-dark-pink"
-                  initial={{translateY: -100}}
-                  animate={{translateY: 0}}
-                  transition={{
-                    duration: 0.4,
-                    ease: easeInOut,
-                    scale: {
-                      type: "spring",
-                      damping: 15,
-                      stiffness: 100,
-                    },
-                  }}
-                >
-                  Save
-                </motion.button>
-              </div>
-            )}
+            <AnimatePresence>
+              {save && !edit && (
+                <div key="save" className="absolute -bottom-24">
+                  <motion.div
+                    key={"saveDiv"}
+                    className="absolute bg-dark-pink w-16 h-24 bottom-8 -z-10"
+                    initial={{opacity: 0, translateY: -100}}
+                    animate={{opacity: 1, translateY: 0}}
+                    exit={{opacity: 0, translateY: -10}}
+                  ></motion.div>
+                  <motion.button
+                    key={"saveBtn"}
+                    className="bg-main-pink text-main-black w-16 h-16 rounded-full border-4 border-dark-pink pointer z-10"
+                    initial={{translateY: -25, opacity: 0}}
+                    animate={{
+                      translateY: [-25, -20, 5, 0],
+                      opacity: [0, 0.2, 0.8, 1],
+                    }}
+                    exit={{
+                      translateY: [0, 5, -20, -25],
+                      opacity: [1, 0.8, 0.2, 0],
+                    }}
+                    transition={{times: [0, 0.1, 0.9, 1]}}
+                    onClick={updateStock}
+                  >
+                    Save
+                  </motion.button>
+                </div>
+              )}
+            </AnimatePresence>
           </form>
           {params.item !== "add" && edit && (
             <button

@@ -34,6 +34,7 @@ export default function Home() {
   const {isLoggedIn, user} = useAuth();
   const [items, setItems] = useState<Item>([]);
   const [locations, setLocations] = useState<string[]>([]);
+  const [startDialog, setStartDialog] = useState(false);
 
   useEffect(() => {
     refreshItems();
@@ -82,6 +83,17 @@ export default function Home() {
       );
       try {
         const docSnap = await getDocs(q);
+
+        if (docSnap.empty) {
+          console.log("The doc snap is empty");
+          await setDoc(doc(collection(db, "locations")), {
+            locs: ["Fridge", "Freezer", "Cabinet 1", "Cabinet 2", "Pantry"],
+            user: (user as any).uid,
+          });
+          refreshLocations();
+          setStartDialog(true);
+        }
+
         docSnap.forEach((doc) => {
           setLocations(doc.data().locs);
         });
@@ -98,6 +110,16 @@ export default function Home() {
       <Header page={1} />
       {isLoggedIn && user != null && user != "" ? (
         <>
+          {startDialog && (
+            <>
+              <div className="fixed w-full min-h-screen startDialog flex flex-col gap-4 items-center justify-center p-16">
+                <h1 className="text-xl bg-shadow-white text-main-white border border-main-pink p-8 shadow-xl rounded-full">
+                  To add an item to your inventory press the add button in the
+                  lower right corner.
+                </h1>
+              </div>
+            </>
+          )}
           <h2 className="mt-4 text-2xl mb-2 lg:text-3xl">Your Groceries</h2>
           <div className="flex flex-col gap-4 text-main-white w-4/5 md:w-3/5 lg:w-1/2 xl:w-2/5">
             {locations.map((loc) => {
@@ -156,7 +178,7 @@ export default function Home() {
                                     initial={{scaleX: 0}}
                                     animate={{scaleX: 1}}
                                     transition={{
-                                      duration: stock / total,
+                                      duration: 2,
                                       type: "spring",
                                     }}
                                   ></motion.div>
@@ -167,7 +189,7 @@ export default function Home() {
                                     initial={{scaleX: 0}}
                                     animate={{scaleX: 1}}
                                     transition={{
-                                      duration: (stock / total) * 2,
+                                      duration: 4,
                                       type: "spring",
                                     }}
                                   ></motion.div>
@@ -186,8 +208,8 @@ export default function Home() {
 
           <motion.div
             className="fixed bg-dark-pink px-7 py-10 bottom-0 right-7 rounded-t-full"
-            initial={{transform: "translateY(50px)"}}
-            animate={{transform: "translateY(0)"}}
+            initial={{transform: "translateY(50" + "px)"}}
+            animate={{transform: "translateY(0" + "px)"}}
             transition={{
               duration: 0.1,
               type: "spring",

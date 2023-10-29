@@ -41,7 +41,7 @@ const Auth = () => {
             Hi, {(user as any).displayName}
           </Text>
           <Link
-            className="text-md text-main-white rounded-full bg-shadow-white px-4"
+            className="text-md text-main-white rounded-full bg-shadow-white px-4 cursor-pointer"
             onClick={() => auth.signOut()}
           >
             Logout
