@@ -20,6 +20,7 @@ const config: Config = {
         "dark-green": "#72aa8b",
         "main-pink": "#eeb8a5",
         "dark-pink": "#e6977a77",
+        "main-yellow": "#e7eea5",
         "main-white": "#e2e0dd",
         "shadow-white": "#4d4942",
         "shadow-white-trans": "#4d494288",

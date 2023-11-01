@@ -39,3 +39,31 @@ body {
 html {
   font-family: var(--font-inter);
 }
+
+.startDialog {
+  background-image: radial-gradient(
+    circle at 85% bottom,
+    transparent,
+    #444444aa 20%
+  );
+}
+
+@media screen and (min-width: 480px) {
+  .startDialog {
+    background-image: radial-gradient(
+      circle at 90% bottom,
+      transparent,
+      #444444aa 20%
+    );
+  }
+}
+
+@media screen and (min-width: 760px) {
+  .startDialog {
+    background-image: radial-gradient(
+      circle at 95% bottom,
+      transparent,
+      #444444aa 15%
+    );
+  }
+}
