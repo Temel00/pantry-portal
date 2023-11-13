@@ -386,6 +386,9 @@ export default function Page({params}: {params: {item: string}}) {
                       }}
                       value={itemUnits}
                     >
+                      <option className="bg-main-black" value="qty">
+                        qty
+                      </option>
                       <option className="bg-main-black" value="tsp">
                         tsp
                       </option>
@@ -480,7 +483,9 @@ export default function Page({params}: {params: {item: string}}) {
                 )}
               </div>
 
-              <p>Last updated: {getFormattedDate()}</p>
+              {params.item !== "add" && (
+                <p>Last updated: {getFormattedDate()}</p>
+              )}
               {edit && (
                 <>
                   <button
@@ -546,7 +551,9 @@ export default function Page({params}: {params: {item: string}}) {
         </>
       ) : (
         <div>
-          <h2>Please log in to view pantry</h2>
+          <video width="300px" autoPlay muted loop>
+            <source src="./LoadingVideo_v1.5.webm" type="video/webm"></source>
+          </video>
         </div>
       )}
     </main>
