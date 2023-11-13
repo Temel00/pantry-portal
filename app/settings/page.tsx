@@ -364,7 +364,9 @@ export default function Settings() {
         </>
       ) : (
         <div>
-          <h2>Please log in to view pantry</h2>
+          <video width="300px" autoPlay muted loop>
+            <source src="./LoadingVideo_v1.5.webm" type="video/webm"></source>
+          </video>
         </div>
       )}
     </main>
